@@ -1,1 +1,9 @@
-# projet-k8s
+# Projet Kubernetes
+
+
+Prérequis
+
+Minikube
+kubectl
+Docker
+gcloud CLI
