@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nlp-back
+  namespace: nlp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nlp-back
+  template:
+    metadata:
+      labels:
+        app: nlp-back
+    spec:
+      containers:
+        - name: nlp-back
+          image: europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-back:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: nlp-back-config
+          env:
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nlp-secrets
+                  key: GROQ_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

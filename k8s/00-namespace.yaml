@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nlp
+  labels:
+    name: nlp
+    project: projet_k8s

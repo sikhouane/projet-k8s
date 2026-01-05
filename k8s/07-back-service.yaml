@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nlp-back-svc
+  namespace: nlp
+spec:
+  selector:
+    app: nlp-back
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP

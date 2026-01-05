@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nlp-front
+  namespace: nlp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nlp-front
+  template:
+    metadata:
+      labels:
+        app: nlp-front
+    spec:
+      containers:
+        - name: nlp-front
+          image: europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:1.0
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"

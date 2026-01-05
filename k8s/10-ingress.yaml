@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nlp-ingress
+  namespace: nlp
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: nlp.example.com
+      http:
+        paths:
+          # API: /api/xxx -> /xxx
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nlp-back-svc
+                port:
+                  number: 80
+          # Front: tout le reste
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nlp-front-svc
+                port:
+                  number: 80

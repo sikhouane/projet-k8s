@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nlp-back-config
+  namespace: nlp
+data:
+  LOG_LEVEL: "INFO"
+  # URL interne Kubernetes pour Postgres (service)
+  DATABASE_URL: "postgresql://nlp:nlp@nlp-db-svc:5432/nlp"
