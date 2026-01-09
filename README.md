@@ -52,8 +52,8 @@ docker push europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-back:1.0
 Frontend
 docker build \
   -t europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:1.0 \
-  -f frontend/Dockerfile \
-  frontend
+  -f front/Dockerfile \
+  front
 
 docker push europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:1.0
 
@@ -106,7 +106,7 @@ Réponse attendue :
   "answer": "Météo à Paris le 2026-01-05 15:00 : pluvieux, 10.6°C..."
 }
 
-10. Test interne Kubernetes (DNS & Services)
+10. Tests
 kubectl run curltest -n nlp \
   --image=curlimages/curl:8.5.0 \
   -it --rm -- sh
@@ -119,6 +119,18 @@ curl -X POST http://nlp-back-svc/ask \
   -H "Content-Type: application/json" \
   -d '{"question":"test"}'
 exit
+
+curl -i -H "Host: nlp.example.com" http://34.40.49.244/api/health
+
+
+Si on met à jour le front :
+TAG=1.1
+docker build -t europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:$TAG .
+docker push europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:$TAG
+kubectl set image deployment/nlp-front -n nlp nlp-front=europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:$TAG
+kubectl rollout status deployment/nlp-front -n nlp
+
+
 
 11. Nettoyage
 kubectl delete -f k8s/

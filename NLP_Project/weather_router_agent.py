@@ -12,10 +12,6 @@ import os
 from openai import OpenAI
 
 
-# --------------------------------------------------------------------------------------
-# Chargement de la clé API GROQ
-# --------------------------------------------------------------------------------------
-
 load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
@@ -26,11 +22,6 @@ client = OpenAI(
     api_key=api_key,
     base_url="https://api.groq.com/openai/v1"
 )
-
-
-# --------------------------------------------------------------------------------------
-# Types
-# --------------------------------------------------------------------------------------
 
 ToolName = Literal["get_weather", "get_temperature", "get_precipitation", "OUT_OF_SCOPE"]
 Scope = Literal["WEATHER", "OUT_OF_SCOPE"]
@@ -43,10 +34,6 @@ class WeatherRouterResult:
     location: Optional[str]
     datetime: Optional[str]
 
-
-# --------------------------------------------------------------------------------------
-# Prompt système (FR)
-# --------------------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """
 Tu es un agent métier de routage météo.
@@ -72,10 +59,6 @@ IMPORTANT :
 - Aucun texte explicatif.
 """
 
-
-# --------------------------------------------------------------------------------------
-# Fonction principale
-# --------------------------------------------------------------------------------------
 
 def route_weather_question(
     question: str,
@@ -110,9 +93,7 @@ def route_weather_question(
         location=data.get("location"),
         datetime=data.get("datetime"),
     )
-# --------------------------------------------------------------------------------------
-# Tests locaux
-# --------------------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     questions = [

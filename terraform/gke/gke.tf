@@ -35,7 +35,8 @@ resource "google_container_node_pool" "nodes" {
 
   node_config {
     machine_type = "e2-standard-4"
-
+    disk_type    = "pd-standard"
+    disk_size_gb = 50
     metadata = {
       disable-legacy-endpoints = "true"
     }

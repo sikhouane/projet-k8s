@@ -1,22 +1,505 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>NLP Weather App</title></head>
-<body>
-  <h1>NLP Weather App</h1>
-  <input id="q" style="width: 400px" placeholder="Question météo..." />
-  <button onclick="ask()">Envoyer</button>
-  <pre id="out"></pre>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NLP Weather</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --border: rgba(255,255,255,.12);
+      --accent: #7c3aed;
+      --accent2: #22c55e;
+      --danger: #ef4444;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.22), transparent 55%),
+        radial-gradient(900px 600px at 55% 95%, rgba(59,130,246,.18), transparent 55%),
+        var(--bg);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding: 28px 18px;
+    }
+    .wrap{
+      width: min(980px, 100%);
+    }
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .brand{
+      display:flex;
+      gap: 12px;
+      align-items:center;
+    }
+    .logo{
+      width:42px; height:42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(124,58,237,.9), rgba(34,197,94,.8));
+      box-shadow: 0 12px 30px rgba(124,58,237,.25);
+    }
+    h1{
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: .2px;
+    }
+    .subtitle{
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .pillbar{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      font-size:12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      padding: 8px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+    }
 
-<script>
-async function ask() {
-  const question = document.getElementById("q").value;
-  const res = await fetch("/api/ask", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({question})
-  });
-  document.getElementById("out").textContent = await res.text();
-}
-</script>
+    .card{
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,.04));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardhead{
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .cardhead .title{
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .cardhead .hint{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.25);
+      display:inline-block;
+    }
+    .dot.ok{ background: var(--accent2); }
+    .dot.bad{ background: var(--danger); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+      padding: 14px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+      .pillbar{ justify-content:flex-start; }
+    }
+
+    .panel{
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.12);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    textarea{
+      width:100%;
+      min-height: 110px;
+      resize: vertical;
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--text);
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 12px;
+      outline: none;
+    }
+    textarea:focus{
+      border-color: rgba(124,58,237,.55);
+      box-shadow: 0 0 0 4px rgba(124,58,237,.16);
+    }
+
+    .row{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+      align-items:center;
+    }
+    button{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      display:inline-flex;
+      align-items:center;
+      gap: 9px;
+    }
+    button.primary{
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.75));
+      border-color: transparent;
+    }
+    button:hover{ transform: translateY(-1px); }
+    button:active{ transform: translateY(0px); }
+    button:disabled{
+      cursor:not-allowed;
+      opacity:.6;
+      transform:none;
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.75);
+      padding: 2px 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.16);
+    }
+
+    .examples{
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+    }
+    .ex{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      cursor:pointer;
+    }
+    .ex:hover{
+      border-color: rgba(124,58,237,.45);
+      background: rgba(124,58,237,.10);
+    }
+    .ex .txt{
+      font-size: 13px;
+      color: rgba(255,255,255,.85);
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ex .tag{
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.12);
+      flex: 0 0 auto;
+    }
+
+    .out{
+      margin-top: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      padding: 12px;
+      min-height: 140px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .statusline{
+      margin-top: 10px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .spinner{
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.22);
+      border-top-color: rgba(255,255,255,.8);
+      animation: spin .8s linear infinite;
+      display:none;
+    }
+    .spinner.show{ display:inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer{
+      margin-top: 14px;
+      color: rgba(255,255,255,.5);
+      font-size: 12px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    a{ color: rgba(255,255,255,.75); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>NLP Weather</h1>
+          <div class="subtitle">Pose une question météo en langage naturel (ex: “Quel temps à Paris demain ?”).</div>
+        </div>
+      </div>
+      <div class="pillbar">
+        <div class="pill">API: <span class="kbd">POST /api/ask</span></div>
+        <div class="pill">Docs: <a href="/api/docs" target="_blank" rel="noreferrer">/api/docs</a></div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="cardhead">
+        <div class="title">Console de test</div>
+        <div class="hint">
+          <span id="healthDot" class="dot"></span>
+          <span id="healthTxt">Vérification de l’API…</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Left -->
+        <div class="panel">
+          <label for="q">Ta question</label>
+          <textarea id="q" placeholder="Ex: Quel est la météo à Paris ?"></textarea>
+
+          <div class="row">
+            <button id="sendBtn" class="primary" onclick="ask()">
+              <span>Envoyer</span>
+              <span class="kbd">Ctrl</span><span class="kbd">⏎</span>
+            </button>
+            <button onclick="clearAll()">Effacer</button>
+            <button onclick="copyOut()">Copier la réponse</button>
+          </div>
+
+          <div class="statusline">
+            <span id="spin" class="spinner"></span>
+            <span id="status">Prêt.</span>
+          </div>
+
+          <div class="out" id="out">La réponse s’affichera ici.</div>
+        </div>
+
+        <!-- Right -->
+        <div class="panel">
+          <label>Exemples rapides</label>
+          <div class="examples">
+            <div class="ex" onclick="setQ('Quel est la météo à Paris ?')">
+              <div class="txt">Quel est la météo à Paris ?</div><div class="tag">Aujourd’hui</div>
+            </div>
+            <div class="ex" onclick="setQ('Est-ce qu’il va pleuvoir à Lyon demain ?')">
+              <div class="txt">Est-ce qu’il va pleuvoir à Lyon demain ?</div><div class="tag">Demain</div>
+            </div>
+            <div class="ex" onclick="setQ('Température ressentie à Marseille ce soir ?')">
+              <div class="txt">Température ressentie à Marseille ce soir ?</div><div class="tag">Soir</div>
+            </div>
+            <div class="ex" onclick="setQ('Vent et rafales à Lille vendredi ?')">
+              <div class="txt">Vent et rafales à Lille vendredi ?</div><div class="tag">Vent</div>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <label>Debug</label>
+          <div class="row" style="margin-top:0">
+            <input id="debug" type="checkbox" />
+            <span style="font-size:13px;color:var(--muted)">Retourner le JSON debug</span>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <label>Conseil</label>
+          <div style="font-size:13px;color:var(--muted);line-height:1.45">
+            Si l'Ingress fait un rewrite <span class="kbd">/api/ask</span> → <span class="kbd">/ask</span>,
+            ce front marche sans CORS (même domaine).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>© NLP Weather App</div>
+      <div>
+        <a href="/api/health" target="_blank" rel="noreferrer">Health</a>
+        ·
+        <a href="/api/openapi.json" target="_blank" rel="noreferrer">OpenAPI</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const qEl = document.getElementById("q");
+    const outEl = document.getElementById("out");
+    const statusEl = document.getElementById("status");
+    const spinEl = document.getElementById("spin");
+    const sendBtn = document.getElementById("sendBtn");
+    const healthDot = document.getElementById("healthDot");
+    const healthTxt = document.getElementById("healthTxt");
+    const debugEl = document.getElementById("debug");
+
+    function setQ(txt){
+      qEl.value = txt;
+      qEl.focus();
+    }
+
+    function setStatus(txt, loading=false){
+      statusEl.textContent = txt;
+      spinEl.classList.toggle("show", !!loading);
+      sendBtn.disabled = !!loading;
+    }
+
+    function prettyMaybe(text){
+      // si c'est du JSON, on le pretty-print
+      try{
+        const obj = JSON.parse(text);
+        return JSON.stringify(obj, null, 2);
+      } catch(e){
+        return text;
+      }
+    }
+
+    async function ask(){
+      const question = (qEl.value || "").trim();
+      if(!question){
+        outEl.textContent = "Écris une question avant d’envoyer.";
+        return;
+      }
+
+      setStatus("Requête envoyée…", true);
+      outEl.textContent = "Attends, je contacte l’API…";
+
+      try{
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ question, debug: !!debugEl.checked })
+        });
+
+        const text = await res.text();
+        const pretty = prettyMaybe(text);
+
+        if(!res.ok){
+          outEl.textContent =
+            `Erreur API (${res.status})\n\n` + pretty;
+          setStatus("Erreur reçue.", false);
+          return;
+        }
+
+        outEl.textContent = pretty;
+        setStatus("Réponse reçue", false);
+      } catch(err){
+        outEl.textContent =
+          "Impossible de contacter l’API.\n" +
+          "Vérifie l’Ingress / la route /api/ask et que le back est up.\n\n" +
+          String(err);
+        setStatus("Connexion échouée.", false);
+      }
+    }
+
+    function clearAll(){
+      qEl.value = "";
+      outEl.textContent = "La réponse s’affichera ici.";
+      setStatus("Prêt.", false);
+      qEl.focus();
+    }
+
+    async function copyOut(){
+      try{
+        await navigator.clipboard.writeText(outEl.textContent || "");
+        setStatus("Copié dans le presse-papiers", false);
+        setTimeout(()=>setStatus("Prêt.", false), 1200);
+      } catch(e){
+        setStatus("Copie impossible (permissions).", false);
+      }
+    }
+
+    // ctrl+enter pour envoyer
+    qEl.addEventListener("keydown", (e)=>{
+      if((e.ctrlKey || e.metaKey) && e.key === "Enter"){
+        e.preventDefault();
+        ask();
+      }
+    });
+
+    // Health check sur /api/health (rewrite -> /health)
+    async function checkHealth(){
+      try{
+        const res = await fetch("/api/health", { method: "GET" });
+        if(res.ok){
+          healthDot.classList.add("ok");
+          healthDot.classList.remove("bad");
+          healthTxt.textContent = "API OK";
+        } else {
+          healthDot.classList.add("bad");
+          healthDot.classList.remove("ok");
+          healthTxt.textContent = "API KO";
+        }
+      } catch(e){
+        healthDot.classList.add("bad");
+        healthDot.classList.remove("ok");
+        healthTxt.textContent = "API KO";
+      }
+    }
+
+    checkHealth();
+    setInterval(checkHealth, 8000);
+
+    // Un exemple par défaut
+    setQ("Quel est la météo à Paris ?");
+  </script>
 </body>
 </html>
