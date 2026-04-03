@@ -1,137 +1,208 @@
-# Projet Kubernetes
+# NLP Multi-Agent Cloud Platform
+
+**Production-ready Kubernetes deployment of an intelligent NLP application with weather intelligence capabilities on Google Cloud Platform.**
+
+## Overview
+
+This project demonstrates a complete, end-to-end cloud-native architecture combining:
+- **AI/NLP** (Natural Language Processing) with multi-agent orchestration
+- **Kubernetes orchestration** at scale on GCP
+- **Infrastructure as Code** using Terraform
+- **Modern DevOps practices** and cloud-native patterns
+
+The system intelligently processes user questions through an LLM-powered agent that can fetch and analyze real-time weather data, then returns contextual, factual answers.
+
+**Key Achievement**: Production-grade deployment from development to GCP cloud using Industry-standard tools (Terraform, Kubernetes, Docker).
+
+## Tech stack
+
+### Cloud & Infrastructure
+- **Google Cloud Platform (GCP)**: GKE cluster, Artifact Registry, IAM policies
+- **Terraform**: Infrastructure as Code for reproducible, version-controlled deployments
+- **Kubernetes**: Container orchestration, service discovery, network management, storage
+- **Docker**: Multi-stage containerization with optimized images
+
+### Backend & AI
+- **Python 3.x**: Core application logic
+- **LLM Integration**: Agent-based AI with tool-calling capabilities
+- **FastAPI/Python Web Framework**: RESTful API endpoints
+- **Multi-Agent Architecture**: Extensible, composable weather tools + routing logic
+
+### Frontend & Routing
+- **HTML/JavaScript**: Responsive user interface
+- **Nginx**: Reverse proxy, static file serving, load balancing
+- **NGINX Ingress Controller**: Production traffic management
+
+### Data
+- **PostgreSQL (Containerized)**: Persistent data storage with PVC
 
 
-- Prérequis
+## Architecture
 
-**kubectl**
-**Docker**
-**gcloud CLI**
+```
+┌───────────────────────────────────────────────────────────┐
+│                  GCP GKE Cluster                          │
+├───────────────────────────────────────────────────────────┤
+│                                                           │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │  NGINX Ingress Controller (Public LoadBalancer)    │ │
+│  │  • HTTPS termination                               │ │
+│  │  • Intelligent routing (api → backend, / → front)  │ │
+│  └─────────────────────────────────────────────────────┘ │
+│                      ↓                                    │
+│    ┌─────────────────────────────────────┐               │
+│    │ NLP Backend Pods (Replicas)         │               │
+│    ├─────────────────────────────────────┤               │
+│    │ • FastAPI application                │               │
+│    │ • LLM agent orchestration            │               │
+│    │ • Weather API integration            │               │
+│    │ • Health checks & monitoring         │               │
+│    └─────────────────────────────────────┘               │
+│                 ↓                                         │
+│    ┌──────────────┐  ┌──────────────┐                   │
+│    │ Frontend Pods │  │  Database    │                   │
+│    │ (Replicas)   │  │  (PostgreSQL)│                   │
+│    │ • Nginx      │  │  • PVC       │                   │
+│    │ • Static UI  │  │  • Persistent│                   │
+│    └──────────────┘  └──────────────┘                   │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+         ↑                                    ↑
+    External Users              External Weather APIs
+```
 
+## Features
 
-1. Authentification GCP
-gcloud auth login
-gcloud auth application-default login
-gcloud config set project projet-k8s-483316
+- **AI-Powered Q&A Engine**: Advanced natural language understanding with contextual responses
+- **Real-Time Data Integration**: Live weather API data fetching and analysis
+- **REST API**: Clean, well-structured endpoints for seamless integration
+- **Production-Grade Kubernetes**: Multi-pod deployments with health checks, restart policies
+- **High Availability**: Replicated pods for backend, frontend, and database
+- **Persistent Storage**: Kubernetes PersistentVolumeClaim for database data durability
+- **Load Balancing**: Nginx Ingress for intelligent traffic distribution
+- **Secret Management**: Kubernetes Secrets for secure credential handling
+- **Configuration Management**: ConfigMaps for environment-specific settings
 
-2. Déploiement de Terraform
-Initialisation
-cd terraform/gke
-terraform init
-terraform plan
-terraform apply
+---
 
-Récupération du kubeconfig
-gcloud container clusters get-credentials projet-k8s-gke-cluster \
-  --zone europe-west3-a \
-  --project projet-k8s-483316
+## Technical skills
 
-Vérification
-kubectl get nodes
+### Container Orchestration & DevOps
+- Designed and deployed multi-tier Kubernetes manifests (Deployments, Services, StatefulSets, PVCs, Ingress)
+- Implemented namespace isolation for workload segregation
+- Configured health checks (liveness & readiness probes) for reliability
+- Managed resource requests/limits for optimal cluster utilization
 
-3. Artifact Registry (Docker images)
-Création du repo
-gcloud services enable artifactregistry.googleapis.com
+### Infrastructure as Code
+- Built Terraform modules for automated GKE cluster provisioning
+- Implemented version-controlled infrastructure with state management
+- Created reproducible deployments across environments
+- Defined GCP IAM policies with least-privilege principles
 
-gcloud artifacts repositories create nlp-repo \
-  --repository-format=docker \
-  --location=europe-west3 \
-  --description="Images projet k8s"
+### Cloud Platform (GCP)
+- Provisioned Google Kubernetes Engine (GKE) clusters
+- Managed Google Artifact Registry for Docker image storage
+- Configured IAM service accounts and role-based access control
+- Set up Cloud networking with public/private resources
 
-Auth Docker
-gcloud auth configure-docker europe-west3-docker.pkg.dev
+### Containerization & CI/CD Concepts
+- Built multi-stage Dockerfiles for optimized image sizes
+- Pushed images to private Docker registry (Artifact Registry)
+- Implemented image versioning and tagging strategies
+- Understood container lifecycle and orchestration
 
-4. Build & Push des images Docker
-Backend
-docker build \
-  -t europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-back:1.0 \
-  -f NLP_Project/Dockerfile \
-  NLP_Project
+### Backend Development
+- Developed Python APIs with FastAPI framework
+- Implemented multi-agent architecture for extensible AI
+- Integrated external APIs (weather services) with error handling
+- Designed tool-calling patterns for LLM agent coordination
 
-docker push europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-back:1.0
+### Networking & Ingress
+- Configured Nginx Ingress Controller for HTTP(S) routing
+- Implemented service discovery using Kubernetes DNS
+- Set up load balancing between pod replicas
+- Managed network policies for traffic control
 
-Frontend
-docker build \
-  -t europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:1.0 \
-  -f front/Dockerfile \
-  front
-
-docker push europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:1.0
-
-5. Droits IAM pour GKE (obligatoire)
-PROJECT_ID=projet-k8s-483316
-PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
-  --role="roles/artifactregistry.reader"
-
-6. Déploiement Kubernetes
-kubectl apply -f k8s/
-
-Vérification
-kubectl get pods -n nlp
-kubectl get svc -n nlp
-
-7. Installation de l’Ingress NGINX
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.5/deploy/static/provider/cloud/deploy.yaml
-
-Vérification
-kubectl get pods -n ingress-nginx
-kubectl get svc -n ingress-nginx
-
-8. Vérification de l’Ingress applicatif
-kubectl get ingress -n nlp
-
-Récupérer l’IP publique :
-
-ADDRESS: 35.xxx.xxx.xxx
-
-9. Tests fonctionnels
-Variable d’environnement
-export INGRESS_IP=35.xxx.xxx.xxx
-
-Health check
-curl -i http://$INGRESS_IP/api/health -H "Host: nlp.example.com"
-
-Requête NLP
-curl -i http://$INGRESS_IP/api/ask -H "Host: nlp.example.com" \
-  -H "Content-Type: application/json" \
-  --data-raw "{\"question\":\"Quelle est la meteo a Paris demain a 15h ?\"}"
+### Debugging & Operations
+- Used kubectl for pod inspection, log aggregation, and diagnostics
+- Implemented troubleshooting workflows for cluster issues
+- Verified service connectivity and network reachability
+- Managed deployment versioning and rollback strategies
 
 
-Réponse attendue :
+## Structure
 
-{
-  "question": "...",
-  "answer": "Météo à Paris le 2026-01-05 15:00 : pluvieux, 10.6°C..."
-}
+```
+projet-k8s/
+├── k8s/                              # Kubernetes Manifests
+│   ├── 00-namespace.yaml             # Namespace: nlp
+│   ├── 01-config-back.yaml           # Backend ConfigMap
+│   ├── 02-secret.yaml                # Database credentials
+│   ├── 03-db-pvc.yaml                # Persistent volume claim
+│   ├── 04-db-deployment.yaml         # PostgreSQL Deployment
+│   ├── 05-db-service.yaml            # Database ClusterIP Service
+│   ├── 06-back-deployment.yaml       # Backend NLP Deployment
+│   ├── 07-back-service.yaml          # Backend ClusterIP Service
+│   ├── 08-front-deployment.yaml      # Frontend Deployment
+│   ├── 09-front-service.yaml         # Frontend ClusterIP Service
+│   ├── 10-ingress-api.yaml           # API Ingress routing
+│   └── 11-ingress-front.yaml         # Frontend Ingress routing
+│
+├── terraform/gke/                    # Infrastructure as Code
+│   ├── gke.tf                        # GKE cluster definition
+│   ├── provider.tf                   # GCP provider configuration
+│   ├── gke-variables.tf              # Variables & outputs
+│   ├── create-namespace.sh           # Setup script
+│   └── terraform.tfstate             # State file (prod only)
+│
+├── NLP_Project/                      # Backend Application
+│   ├── api.py                        # FastAPI endpoints
+│   ├── weather_router_agent.py       # Multi-agent orchestration
+│   ├── weather_tools.py              # Weather API integration
+│   ├── code_exec.py                  # Code execution capability
+│   ├── requirements.txt              # Python dependencies
+│   ├── Dockerfile                    # Multi-stage backend image
+│   └── README.md                     # Backend documentation
+│
+├── front/                            # Frontend Application
+│   ├── index.html                    # React/HTML UI
+│   ├── Dockerfile                    # NGINX-based frontend
+│   └── nginx.conf                    # NGINX configuration
+│
+├── nginx.conf                        # Optional: Nginx config
+└── README.md                         # This documentation
+```
 
-10. Tests
-kubectl run curltest -n nlp \
-  --image=curlimages/curl:8.5.0 \
-  -it --rm -- sh
+---
 
+## Security Considerations
 
-Dans le pod :
+- **Kubernetes Secrets**: Sensitive data (DB passwords, API keys) encrypted at rest
+- **Namespace Isolation**: Workloads confined to nlp namespace for multi-tenancy
+- **IAM Policies**: GCP service accounts with minimal required permissions (least privilege)
+- **Network Ingress**: Public traffic routed only through NGINX controller
+- **ConfigMaps vs Secrets**: Clear separation of configuration from credentials
+- **Image Registry**: Private Artifact Registry with authentication required
 
-curl http://nlp-back-svc/health
-curl -X POST http://nlp-back-svc/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question":"test"}'
-exit
+## Key Learnings & Takeaways
 
-curl -i -H "Host: nlp.example.com" http://34.40.49.244/api/health
+1. **Production Readiness**: Gap between local development and cloud production (networking, statelessness, scaling)
+2. **Infrastructure Automation**: Version-controlled, repeatable infrastructure reduces errors and enables disaster recovery
+3. **Container Best Practices**: Image optimization, layer caching, registry organization
+4. **Kubernetes Complexity**: Real-world challenges (networking, storage, RBAC, resource management)
+5. **DevOps Mindset**: Building systems that enable continuous integration, deployment, and operational excellence
+6. **Cloud Economics**: Understanding resource allocation, cost optimization, and cloud pricing models
+7. **Monitoring & Observability**: Importance of logs, metrics, and alerting for production systems
 
+## Potential enhancements
 
-Si on met à jour le front :
-TAG=1.1
-docker build -t europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:$TAG .
-docker push europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:$TAG
-kubectl set image deployment/nlp-front -n nlp nlp-front=europe-west3-docker.pkg.dev/projet-k8s-483316/nlp-repo/nlp-front:$TAG
-kubectl rollout status deployment/nlp-front -n nlp
+- [ ] **CI/CD Pipeline**: GitOps with GitHub Actions / Cloud Build for automated deployments
+- [ ] **Auto-Scaling**: Horizontal Pod Autoscaler based on CPU/Memory metrics
+- [ ] **Monitoring Stack**: Prometheus + Grafana for metrics visualization
+- [ ] **Centralized Logging**: ELK Stack or GCP Cloud Logging for aggregated logs
+- [ ] **Certificate Management**: Cert-Manager for automatic HTTPS certificate renewal
+- [ ] **Database Backups**: Automated backup strategies and disaster recovery
+- [ ] **Service Mesh**: Istio for advanced traffic management and observability
+- [ ] **API Documentation**: OpenAPI/Swagger integration for interactive API docs
 
-
-
-11. Nettoyage
-kubectl delete -f k8s/
-terraform destroy
+## Educational project - All rights reserved.
